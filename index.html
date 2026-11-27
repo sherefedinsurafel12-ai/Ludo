@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Ludo Game</title>
+<title>Next Ludo</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
   body {
@@ -11,27 +11,35 @@
     height: 100vh; display: flex; flex-direction: column;
     justify-content: center; align-items: center; font-family: Arial, sans-serif; overflow: hidden;
   }
-  .top-bar, .bottom-bar {
-    width: 94vw; max-width: 420px; display: flex; align-items: center; padding: 8px 0;
+  #menuScreen {
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+    background: rgba(15, 43, 89, 0.95); padding: 30px; border-radius: 16px;
+    border: 2px solid #4a7bc7; box-shadow: 0 10px 30px rgba(0,0,0,0.8); width: 85vw; max-width: 350px;
   }
+  #menuScreen h1 { color: #ffd700; font-size: 32px; text-shadow: 2px 2px 4px #000; }
+  .btn {
+    width: 100%; padding: 14px; font-size: 18px; font-weight: bold; color: #fff;
+    background: linear-gradient(180deg, #28c76f, #1a8a4b); border: 2px solid #75ff9e;
+    border-radius: 10px; cursor: pointer;
+  }
+  #gameScreen { display: none; flex-direction: column; align-items: center; width: 100%; }
+  .top-bar, .bottom-bar { width: 94vw; max-width: 420px; display: flex; align-items: center; padding: 8px 0; }
   .top-bar { justify-content: flex-end; }
   .bottom-bar { justify-content: flex-start; }
   .player-panel {
     display: flex; align-items: center; background: #1a3b6e;
     border: 2px solid #4a7bc7; border-radius: 10px; padding: 5px 10px; gap: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   }
   .dice-box {
     width: 48px; height: 48px; background: #fff; border-radius: 8px;
     display: flex; justify-content: center; align-items: center;
-    font-size: 28px; font-weight: bold; color: #111; cursor: pointer;
-    box-shadow: inset 0 0 5px rgba(0,0,0,0.4);
+    font-size: 30px; font-weight: bold; color: #111; cursor: pointer;
   }
-  .dice-box.active { border: 3px solid #ffd700; animation: pulse 1s infinite; }
-  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
+  .dice-box.active { border: 3px solid #ffd700; animation: pulse 0.9s infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
   .avatar {
     width: 44px; height: 44px; border-radius: 8px; display: flex;
-    justify-content: center; align-items: center; font-size: 24px; font-weight: bold; color: #fff;
+    justify-content: center; align-items: center; font-size: 24px; color: #fff;
   }
   .p1-avatar { background: #1e73be; border: 2px solid #6bb5ff; }
   .p2-avatar { background: #1ea34a; border: 2px solid #75ff9e; }
@@ -39,7 +47,6 @@
     width: 94vw; height: 94vw; max-width: 420px; max-height: 420px;
     background: #fff; border: 4px solid #091d3e; display: grid;
     grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr);
-    position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.7);
   }
   .cell { border: 1px solid #444; position: relative; display: flex; justify-content: center; align-items: center; }
   .red { background: #e31e24; }
@@ -53,14 +60,10 @@
   }
   .home-inner {
     width: 100%; height: 100%; background: #fff; border-radius: 6px;
-    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
-    gap: 18%; padding: 18%;
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 18%; padding: 18%;
   }
-  .spot { border-radius: 50%; position: relative; display: flex; justify-content: center; align-items: center; }
-  .label {
-    position: absolute; bottom: 2px; color: #fff; font-weight: bold; font-size: 12px;
-    text-shadow: 1px 1px 2px #000;
-  }
+  .spot { border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+  .label { position: absolute; bottom: 2px; color: #fff; font-weight: bold; font-size: 12px; text-shadow: 1px 1px 2px #000; }
   .top-label { top: 2px; bottom: auto; transform: rotate(180deg); }
   .center-home {
     grid-column: 7 / 10; grid-row: 7 / 10;
@@ -70,91 +73,80 @@
   .token {
     width: 78%; height: 78%; border-radius: 50%; border: 2px solid #fff;
     box-shadow: 0 3px 5px rgba(0,0,0,0.6); cursor: pointer; z-index: 10;
-    transition: transform 0.2s;
   }
   .token.blue-t { background: radial-gradient(circle at 30% 30%, #6bb5ff, #0d4b82); }
   .token.green-t { background: radial-gradient(circle at 30% 30%, #75ff9e, #0e6b2c); }
-  .token.movable { animation: bounce 0.6s infinite alternate; border: 2px solid #ff0; }
+  .token.movable { animation: bounce 0.5s infinite alternate; border: 2px solid #ff0; }
   @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.25); } }
   #status { color: #ffd700; font-weight: bold; margin-top: 8px; font-size: 14px; }
 </style>
 </head>
 <body>
 
-<div class="top-bar">
-  <div class="player-panel">
-    <div id="dice2" class="dice-box" onclick="rollDice(2)">⚄</div>
-    <div class="avatar p2-avatar">♙</div>
-  </div>
+<div id="menuScreen">
+  <h1>NEXT LUDO</h1>
+  <button class="btn" onclick="startGame()">2 PLAYERS (PLAY)</button>
 </div>
 
-<div class="board" id="board"></div>
-
-<div class="bottom-bar">
-  <div class="player-panel">
-    <div class="avatar p1-avatar">♙</div>
-    <div id="dice1" class="dice-box active" onclick="rollDice(1)">⚄</div>
+<div id="gameScreen">
+  <div class="top-bar">
+    <div class="player-panel">
+      <div id="dice2" class="dice-box" onclick="rollDice(2)">⚄</div>
+      <div class="avatar p2-avatar">♙</div>
+    </div>
   </div>
+  <div class="board" id="board"></div>
+  <div class="bottom-bar">
+    <div class="player-panel">
+      <div class="avatar p1-avatar">♙</div>
+      <div id="dice1" class="dice-box active" onclick="rollDice(1)">⚄</div>
+    </div>
+  </div>
+  <div id="status">PLAYER 1 TURN - TAP DICE</div>
 </div>
-<div id="status">PLAYER 1 TURN - TAP DICE</div>
 
 <script>
 const board = document.getElementById('board');
 const statusEl = document.getElementById('status');
 
 const path = [
-  [13,6],[12,6],[11,6],[10,6],[9,6],
-  [8,5],[8,4],[8,3],[8,2],[8,1],[8,0],
-  [7,0],[6,0],
-  [6,1],[6,2],[6,3],[6,4],[6,5],
-  [5,6],[4,6],[3,6],[2,6],[1,6],[0,6],
-  [0,7],[0,8],
-  [1,8],[2,8],[3,8],[4,8],[5,8],
-  [6,9],[6,10],[6,11],[6,12],[6,13],[6,14],
-  [7,14],[8,14],
-  [8,13],[8,12],[8,11],[8,10],[8,9],
-  [9,8],[10,8],[11,8],[12,8],[13,8],[14,8],
-  [14,7],[14,6]
+  "13,6","12,6","11,6","10,6","9,6",
+  "8,5","8,4","8,3","8,2","8,1","8,0",
+  "7,0","6,0",
+  "6,1","6,2","6,3","6,4","6,5",
+  "5,6","4,6","3,6","2,6","1,6","0,6",
+  "0,7","0,8",
+  "1,8","2,8","3,8","4,8","5,8",
+  "6,9","6,10","6,11","6,12","6,13","6,14",
+  "7,14","8,14",
+  "8,13","8,12","8,11","8,10","8,9",
+  "9,8","10,8","11,8","12,8","13,8","14,8",
+  "14,7","14,6"
 ];
 
-const blueHomePath = [[13,7],[12,7],[11,7],[10,7],[9,7],[8,7]];
-const greenHomePath = [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7]];
+const blueHomePath = ["13,7","12,7","11,7","10,7","9,7"];
+const greenHomePath = ["1,7","2,7","3,7","4,7","5,7"];
 const stars = ["13,6","8,2","6,1","2,6","1,8","6,12","8,13","12,8"];
 
-let turn = 1;
-let diceVal = 0;
-let rolled = false;
-let tokens = {
-  1: [-1, -1, -1, -1],
-  2: [-1, -1, -1, -1]
-};
+let turn = 1, diceVal = 0, rolled = false;
+let tokens = { 1: [-1, -1, -1, -1], 2: [-1, -1, -1, -1] };
+
+function startGame() {
+  document.getElementById('menuScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'flex';
+  buildBoard();
+}
 
 function buildBoard() {
   board.innerHTML = '';
   for (let r = 0; r < 15; r++) {
     for (let c = 0; c < 15; c++) {
-      if (r < 6 && c < 6) {
-        if (r === 0 && c === 0) board.appendChild(createHome('red', ''));
-        continue;
-      }
-      if (r < 6 && c > 8) {
-        if (r === 0 && c === 9) board.appendChild(createHome('green', 'PLAYER2', true));
-        continue;
-      }
-      if (r > 8 && c < 6) {
-        if (r === 9 && c === 0) board.appendChild(createHome('blue', 'PLAYER1', false));
-        continue;
-      }
-      if (r > 8 && c > 8) {
-        if (r === 9 && c === 9) board.appendChild(createHome('yellow', ''));
-        continue;
-      }
+      if (r < 6 && c < 6) { if (r === 0 && c === 0) board.appendChild(createHome('red', '')); continue; }
+      if (r < 6 && c > 8) { if (r === 0 && c === 9) board.appendChild(createHome('green', 'PLAYER2', true)); continue; }
+      if (r > 8 && c < 6) { if (r === 9 && c === 0) board.appendChild(createHome('blue', 'PLAYER1', false)); continue; }
+      if (r > 8 && c > 8) { if (r === 9 && c === 9) board.appendChild(createHome('yellow', '')); continue; }
       if (r >= 6 && r <= 8 && c >= 6 && c <= 8) {
-        if (r === 6 && c === 6) {
-          const ch = document.createElement('div');
-          ch.className = 'center-home';
-          board.appendChild(ch);
-        }
+        if (r === 6 && c === 6) { const ch = document.createElement('div'); ch.className = 'center-home'; board.appendChild(ch); }
         continue;
       }
       const cell = document.createElement('div');
@@ -197,7 +189,7 @@ function renderTokens() {
   [1, 2].forEach(p => {
     const color = p === 1 ? 'blue' : 'green';
     tokens[p].forEach((pos, idx) => {
-      if (pos === 57) return;
+      if (pos === 56) return;
       const t = document.createElement('div');
       t.className = `token ${color}-t`;
       if (rolled && turn === p && canMove(p, pos)) {
@@ -207,7 +199,7 @@ function renderTokens() {
       if (pos === -1) {
         document.getElementById(`home-${color}-${idx}`).appendChild(t);
       } else {
-        const coords = getCoords(p, pos);
+        const coords = getCoords(p, pos).split(',');
         const cell = document.getElementById(`c-${coords[0]}-${coords[1]}`);
         if (cell) cell.appendChild(t);
       }
@@ -220,13 +212,12 @@ function getCoords(p, pos) {
     const offset = p === 1 ? 0 : 26;
     return path[(pos + offset) % 52];
   }
-  const hIdx = pos - 51;
-  return p === 1 ? blueHomePath[hIdx] : greenHomePath[hIdx];
+  return p === 1 ? blueHomePath[pos - 51] : greenHomePath[pos - 51];
 }
 
 function canMove(p, pos) {
   if (pos === -1) return diceVal === 6;
-  return pos + diceVal <= 57;
+  return pos + diceVal <= 56;
 }
 
 function rollDice(p) {
@@ -235,53 +226,31 @@ function rollDice(p) {
   const faces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
   document.getElementById(`dice${p}`).innerText = faces[diceVal - 1];
   rolled = true;
-  const movable = tokens[p].some(pos => canMove(p, pos));
-  if (!movable) {
-    statusEl.innerText = `NO MOVES! SWITCHING TURN...`;
-    setTimeout(nextTurn, 900);
+  if (!tokens[p].some(pos => canMove(p, pos))) {
+    statusEl.innerText = `NO MOVES! SWITCHING...`;
+    setTimeout(nextTurn, 800);
   } else {
-    statusEl.innerText = `PLAYER ${p}: TAP A HIGHLIGHTED PIECE`;
+    statusEl.innerText = `PLAYER ${p}: TAP GLOWING PIECE`;
     renderTokens();
   }
 }
 
 function moveToken(p, idx) {
-  let pos = tokens[p][idx];
-  if (pos === -1 && diceVal === 6) {
-    tokens[p][idx] = 0;
-  } else {
-    tokens[p][idx] += diceVal;
-  }
+  if (tokens[p][idx] === -1 && diceVal === 6) tokens[p][idx] = 0;
+  else tokens[p][idx] += diceVal;
+
   const newPos = tokens[p][idx];
   if (newPos < 51) {
-    const myCoords = getCoords(p, newPos);
-    if (!stars.includes(`${myCoords[0]},${myCoords[1]}`)) {
+    const myC = getCoords(p, newPos);
+    if (!stars.includes(myC)) {
       const opp = p === 1 ? 2 : 1;
       tokens[opp].forEach((oPos, oIdx) => {
-        if (oPos >= 0 && oPos < 51) {
-          const oCoords = getCoords(opp, oPos);
-          if (oCoords[0] === myCoords[0] && oCoords[1] === myCoords[1]) {
-            tokens[opp][oIdx] = -1;
-          }
-        }
+        if (oPos >= 0 && oPos < 51 && getCoords(opp, oPos) === myC) tokens[opp][oIdx] = -1;
       });
     }
   }
-  if (tokens[p].every(v => v === 57)) {
+  if (tokens[p].every(v => v === 56)) {
     statusEl.innerText = `PLAYER ${p} WINS!`;
     renderTokens();
     return;
   }
-  if (diceVal === 6) {
-    rolled = false;
-    statusEl.innerText = `ROLLED 6! PLAYER ${p} ROLL AGAIN`;
-    renderTokens();
-  } else {
-    nextTurn();
-  }
-}
-
-function nextTurn() {
-  rolled = false;
-  turn = turn === 1 ? 2 : 1;
-  document.getElementById('dice1').classList.toggle('active', turn === 1);
