@@ -165,92 +165,11 @@ function buildBoard() {
 
 function createHome(color, text, isTop) {
   const box = document.createElement('div');
-  box.className = `home-box ${color}`;
-  const inner = document.createElement('div');
-  inner.className = 'home-inner';
-  for (let i = 0; i < 4; i++) {
-    const s = document.createElement('div');
-    s.className = `spot ${color}`;
+  box.className = `home-box ${color}`; const inner = document.createElement('div'); inner.className = 'home-inner'; for (let i = 0; i < 4; i++) { const s = document.createElement('div'); s.className = `spot ${color}`;
     s.id = `home-${color}-${i}`;
     inner.appendChild(s);
   }
   box.appendChild(inner);
   if (text) {
     const lbl = document.createElement('div');
-    lbl.className = `label ${isTop ? 'top-label' : ''}`;
-    lbl.innerText = text;
-    box.appendChild(lbl);
-  }
-  return box;
-}
-
-function renderTokens() {
-  document.querySelectorAll('.token').forEach(t => t.remove());
-  [1, 2].forEach(p => {
-    const color = p === 1 ? 'blue' : 'green';
-    tokens[p].forEach((pos, idx) => {
-      if (pos === 56) return;
-      const t = document.createElement('div');
-      t.className = `token ${color}-t`;
-      if (rolled && turn === p && canMove(p, pos)) {
-        t.classList.add('movable');
-        t.onclick = () => moveToken(p, idx);
-      }
-      if (pos === -1) {
-        document.getElementById(`home-${color}-${idx}`).appendChild(t);
-      } else {
-        const coords = getCoords(p, pos).split(',');
-        const cell = document.getElementById(`c-${coords[0]}-${coords[1]}`);
-        if (cell) cell.appendChild(t);
-      }
-    });
-  });
-}
-
-function getCoords(p, pos) {
-  if (pos < 51) {
-    const offset = p === 1 ? 0 : 26;
-    return path[(pos + offset) % 52];
-  }
-  return p === 1 ? blueHomePath[pos - 51] : greenHomePath[pos - 51];
-}
-
-function canMove(p, pos) {
-  if (pos === -1) return diceVal === 6;
-  return pos + diceVal <= 56;
-}
-
-function rollDice(p) {
-  if (p !== turn || rolled) return;
-  diceVal = Math.floor(Math.random() * 6) + 1;
-  const faces = ['⚀','⚁','⚂','⚃','⚄','⚅'];
-  document.getElementById(`dice${p}`).innerText = faces[diceVal - 1];
-  rolled = true;
-  if (!tokens[p].some(pos => canMove(p, pos))) {
-    statusEl.innerText = `NO MOVES! SWITCHING...`;
-    setTimeout(nextTurn, 800);
-  } else {
-    statusEl.innerText = `PLAYER ${p}: TAP GLOWING PIECE`;
-    renderTokens();
-  }
-}
-
-function moveToken(p, idx) {
-  if (tokens[p][idx] === -1 && diceVal === 6) tokens[p][idx] = 0;
-  else tokens[p][idx] += diceVal;
-
-  const newPos = tokens[p][idx];
-  if (newPos < 51) {
-    const myC = getCoords(p, newPos);
-    if (!stars.includes(myC)) {
-      const opp = p === 1 ? 2 : 1;
-      tokens[opp].forEach((oPos, oIdx) => {
-        if (oPos >= 0 && oPos < 51 && getCoords(opp, oPos) === myC) tokens[opp][oIdx] = -1;
-      });
-    }
-  }
-  if (tokens[p].every(v => v === 56)) {
-    statusEl.innerText = `PLAYER ${p} WINS!`;
-    renderTokens();
-    return;
-  }
+    lbl.className = `label ${isTop ? 'top-label' : ''}`; lbl.innerText = text; box.appendChild(lbl); } return box; }  function renderTokens() { document.querySelectorAll('.token').forEach(t => t.remove()); [1, 2].forEach(p => { const color = p === 1 ? 'blue' : 'green'; tokens[p].forEach((pos, idx) => { if (pos === 56) return; const t = document.createElement('div'); t.className = `token ${
